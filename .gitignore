@@ -1,0 +1,7 @@
+# Folders.
+.vscode
+.idea
+
+# Files.
+.env
+sqlite.db

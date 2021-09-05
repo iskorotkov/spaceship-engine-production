@@ -1,0 +1,93 @@
+output:
+  connString:
+    sqlite: "sqlite.db"
+
+data:
+  seed: 1
+  links:
+    clientOrders:
+      count: 3
+    engineComponents:
+      count: 3
+    componentProviders:
+      count: 3
+
+  clients:
+    count: 5
+    names:
+      adjectives:
+        - Galactic
+        - Space
+        - Advanced
+        - Micro
+        - Mega
+        - Epic
+        - Earth
+      nouns:
+        - Shipyard
+        - Company
+        - Lab
+        - Engineering
+        - Inc
+
+  engines:
+    count: 10
+    names:
+      types:
+        - Warp
+        - Plasma
+        - Eon
+        - Fuel
+        - Wormhole
+        - Hyperlane
+      generations:
+        - "10"
+        - "20"
+        - "30"
+      series:
+        - "50"
+        - "60"
+        - "70"
+        - "80"
+
+  providers:
+    count: 5
+    names:
+      adjectives:
+        - Micro
+        - Mega
+        - Epic
+        - Earth
+      nouns:
+        - Production
+        - Company
+        - Inc
+        - Lab
+
+  components:
+    count: 20
+    names:
+      adjectives:
+        - Small
+        - Medium-sized
+        - Big
+        - Micro
+        - Nano
+        - Fueled
+        - Electric
+        - Army-grade
+        - Charged
+      nouns:
+        - Semiconductor
+        - Superconductor
+        - Pump
+        - Computer
+        - Interface
+        - Device
+        - Tool
+        - Gun
+        - Pod
+        - Oil
+        - Wiring
+        - Container
+        - Particles
