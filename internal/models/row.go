@@ -1,33 +1,45 @@
 package models
 
-import "time"
+import (
+	"time"
+)
 
 type Row struct {
 	ID uint
+	RowClient
+	RowComponent
+	RowEngine
+	RowOrder
+	RowProvider
 
-	// Client.
+	// Requirement: M:M, no additional fields.
+	// Supply: M:M, no additional fields.
+}
+
+type RowClient struct {
 	ClientID   uint
 	ClientName string
+}
 
-	// Component.
+type RowComponent struct {
 	ComponentID   uint
 	ComponentName string
+}
 
-	// Engine.
+type RowEngine struct {
 	EngineID    uint
 	EngineName  string
 	EnginePower float64
+}
 
-	// Order.
+type RowOrder struct {
 	OrderID          uint
 	OrderAmount      int
 	OrderCreatedAt   time.Time
 	OrderCompletedAt *time.Time
+}
 
-	// Provider.
+type RowProvider struct {
 	ProviderID   uint
 	ProviderName string
-
-	// Requirement: M:M, no additional fields.
-	// Supply: M:M, no additional fields.
 }

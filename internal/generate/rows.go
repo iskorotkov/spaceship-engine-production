@@ -13,47 +13,50 @@ func Rows(
 	engines []models.Engine,
 	components []models.Component,
 	providers []models.Provider,
-	clientOrders, engineComponents, componentProviders int,
+	ordersPerClient, componentsPerEngine, providersPerComponent int,
 ) []models.Row {
-	var rows []models.Row
+	engineComponents := generateEngineComponents(engines, components, componentsPerEngine)
+	componentProviders := generateComponentProviders(components, providers, providersPerComponent)
+
+	var (
+		rows    []models.Row
+		orderID uint
+	)
 
 	for _, client := range clients {
-		for i := 0; i < clientOrders; i++ {
+		for i := 0; i < ordersPerClient; i++ {
+			createdAt, completedAt := timeRange()
 			engine := engines[rand.Intn(len(engines))] //nolint:gosec
+			amount := rand.Intn(maxOrderAmount)        //nolint:gosec
+			orderID++
 
-			for j := 0; j < engineComponents; j++ {
-				component := components[rand.Intn(len(components))] //nolint:gosec
-
-				for k := 0; k < componentProviders; k++ {
-					provider := providers[rand.Intn(len(providers))] //nolint:gosec
-
-					createdAt, completedAt := timeRange()
-
+			for _, component := range engineComponents[engine] {
+				for _, provider := range componentProviders[component] {
 					item := models.Row{
 						ID: uint(len(rows) + 1),
-
-						// Client.
-						ClientID:   client.ID,
-						ClientName: client.Name,
-
-						// Component.
-						ComponentID:   component.ID,
-						ComponentName: component.Name,
-
-						// Engine.
-						EngineID:    engine.ID,
-						EngineName:  engine.Name,
-						EnginePower: engine.Power,
-
-						// Order.
-						OrderID:          uint(len(rows) + 1),
-						OrderAmount:      rand.Intn(maxOrderAmount), //nolint:gosec
-						OrderCreatedAt:   createdAt,
-						OrderCompletedAt: &completedAt,
-
-						// Provider.
-						ProviderID:   provider.ID,
-						ProviderName: provider.Name,
+						RowClient: models.RowClient{
+							ClientID:   client.ID,
+							ClientName: client.Name,
+						},
+						RowComponent: models.RowComponent{
+							ComponentID:   component.ID,
+							ComponentName: component.Name,
+						},
+						RowEngine: models.RowEngine{
+							EngineID:    engine.ID,
+							EngineName:  engine.Name,
+							EnginePower: engine.Power,
+						},
+						RowOrder: models.RowOrder{
+							OrderID:          orderID,
+							OrderAmount:      amount,
+							OrderCreatedAt:   createdAt,
+							OrderCompletedAt: &completedAt,
+						},
+						RowProvider: models.RowProvider{
+							ProviderID:   provider.ID,
+							ProviderName: provider.Name,
+						},
 					}
 
 					rows = append(rows, item)
@@ -63,4 +66,38 @@ func Rows(
 	}
 
 	return rows
+}
+
+func generateComponentProviders(
+	components []models.Component,
+	providers []models.Provider,
+	providersPerComponent int,
+) map[models.Component][]models.Provider {
+	componentProviders := make(map[models.Component][]models.Provider)
+
+	for _, component := range components {
+		for i := 0; i < providersPerComponent; i++ {
+			provider := providers[rand.Intn(len(providers))] //nolint:gosec
+			componentProviders[component] = append(componentProviders[component], provider)
+		}
+	}
+
+	return componentProviders
+}
+
+func generateEngineComponents(
+	engines []models.Engine,
+	components []models.Component,
+	componentsPerEngine int,
+) map[models.Engine][]models.Component {
+	engineComponents := make(map[models.Engine][]models.Component)
+
+	for _, engine := range engines {
+		for i := 0; i < componentsPerEngine; i++ {
+			component := components[rand.Intn(len(components))] //nolint:gosec
+			engineComponents[engine] = append(engineComponents[engine], component)
+		}
+	}
+
+	return engineComponents
 }
