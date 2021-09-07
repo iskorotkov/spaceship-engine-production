@@ -1,48 +1,74 @@
-CREATE TABLE public.clients
+CREATE TABLE clients
 (
-    id   BIGINT NOT NULL,
+    id   BIGSERIAL
+        CONSTRAINT clients_pkey
+            PRIMARY KEY,
     name TEXT
 );
 
-CREATE TABLE public.components
+CREATE TABLE components
 (
-    id   BIGINT NOT NULL,
+    id   BIGSERIAL
+        CONSTRAINT components_pkey
+            PRIMARY KEY,
     name TEXT
 );
 
-CREATE TABLE public.engines
+CREATE TABLE engines
 (
-    id    BIGINT NOT NULL,
+    id    BIGSERIAL
+        CONSTRAINT engines_pkey
+            PRIMARY KEY,
     name  TEXT,
     power NUMERIC
 );
 
-CREATE TABLE public.orders
+CREATE TABLE orders
 (
-    id           BIGINT NOT NULL,
+    id           BIGSERIAL
+        CONSTRAINT orders_pkey
+            PRIMARY KEY,
     amount       BIGINT,
     created_at   TIMESTAMP WITH TIME ZONE,
     completed_at TIMESTAMP WITH TIME ZONE,
-    client_id    BIGINT,
+    client_id    BIGINT
+        CONSTRAINT fk_orders_client
+            REFERENCES clients,
     engine_id    BIGINT
+        CONSTRAINT fk_orders_engine
+            REFERENCES engines
 );
 
-CREATE TABLE public.providers
+CREATE TABLE providers
 (
-    id   BIGINT NOT NULL,
+    id   BIGSERIAL
+        CONSTRAINT providers_pkey
+            PRIMARY KEY,
     name TEXT
 );
 
-CREATE TABLE public.requirements
+CREATE TABLE requirements
 (
-    id           BIGINT NOT NULL,
-    engine_id    BIGINT,
+    id           BIGSERIAL
+        CONSTRAINT requirements_pkey
+            PRIMARY KEY,
+    engine_id    BIGINT
+        CONSTRAINT fk_requirements_engine
+            REFERENCES engines,
     component_id BIGINT
+        CONSTRAINT fk_requirements_component
+            REFERENCES components
 );
 
-CREATE TABLE public.supplies
+CREATE TABLE supplies
 (
-    id           BIGINT NOT NULL,
-    component_id BIGINT,
+    id           BIGSERIAL
+        CONSTRAINT supplies_pkey
+            PRIMARY KEY,
+    component_id BIGINT
+        CONSTRAINT fk_supplies_component
+            REFERENCES components,
     provider_id  BIGINT
+        CONSTRAINT fk_supplies_provider
+            REFERENCES providers
 );
