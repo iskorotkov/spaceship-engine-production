@@ -4,5 +4,6 @@
 
 # Files.
 .env
+.golangci-lint
 sqlite.db
 report.xlsx

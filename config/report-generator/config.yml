@@ -1,0 +1,9 @@
+input:
+  connString:
+    postgresql: "host=localhost port=5432 user=postgres password=postgres dbname=postgres sslmode=disable"
+
+output:
+  server:
+    address: localhost:8080
+  excel:
+    file: "report.xlsx"

@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+option go_package = "github.com/iskorotkov/spaceship-engine-production/api";
+
+service ReportPrinter {
+  rpc Print(PrintRequest) returns (PrintResponse) {}
+}
+
+message PrintRequest {
+  string filepath = 1;
+  int32 totalOrders = 2;
+  repeated Client topClients = 3;
+  repeated Engine topEngines = 4;
+}
+
+message Client {
+  string name = 1;
+  int32 orders = 2;
+}
+
+message Engine {
+  string name = 1;
+  double power = 2;
+  int32 orders = 3;
+}
+
+message PrintResponse {
+}

@@ -5,7 +5,7 @@ services:
     image: postgres:13
     restart: always
     networks:
-      spaceship-engine-production:
+      data:
     ports:
       - "5432:5432"
     environment:
@@ -21,8 +21,20 @@ services:
       retries: 3
       start_period: 10s
 
+  report-printer:
+    image: report-printer
+    build:
+      context: .
+      dockerfile: build/report-printer.dockerfile
+    restart: always
+    networks:
+      printers:
+    ports:
+      - "8080:8080"
+
 networks:
-  spaceship-engine-production:
+  data:
+  printers:
 
 volumes:
   postgres-data:
