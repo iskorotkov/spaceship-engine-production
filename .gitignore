@@ -1,8 +1,10 @@
 # Folders.
 .vscode
 .idea
+results
 
 # Files.
 .env
 sqlite.db
 report.xlsx
+report.docx

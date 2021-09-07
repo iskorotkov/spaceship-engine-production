@@ -6,4 +6,4 @@ output:
   server:
     address: localhost:8080
   excel:
-    file: "report.xlsx"
+    file: "/results/report.xlsx"

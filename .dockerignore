@@ -1,9 +1,11 @@
 # Folders.
 .vscode
 .idea
+results
 
 # Files.
 .env
 .golangci-lint
 sqlite.db
 report.xlsx
+report.docx

@@ -31,6 +31,8 @@ services:
       printers:
     ports:
       - "8080:8080"
+    volumes:
+      - "./results/:/results/:z"
 
 networks:
   data:
