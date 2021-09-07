@@ -8,13 +8,7 @@ import (
 
 const maxOrderAmount = 20
 
-func Rows(
-	clients []models.Client,
-	engines []models.Engine,
-	components []models.Component,
-	providers []models.Provider,
-	ordersPerClient, componentsPerEngine, providersPerComponent int,
-) []models.Row {
+func Rows(clients []models.Client, engines []models.Engine, components []models.Component, providers []models.Provider, ordersPerClient, componentsPerEngine, providersPerComponent Range) []models.Row {
 	engineComponents := generateEngineComponents(engines, components, componentsPerEngine)
 	componentProviders := generateComponentProviders(components, providers, providersPerComponent)
 
@@ -24,7 +18,7 @@ func Rows(
 	)
 
 	for _, client := range clients {
-		for i := 0; i < ordersPerClient; i++ {
+		for i := 0; i < ordersPerClient.Random(); i++ {
 			createdAt, completedAt := timeRange()
 			engine := engines[rand.Intn(len(engines))] //nolint:gosec
 			amount := rand.Intn(maxOrderAmount)        //nolint:gosec
@@ -68,15 +62,11 @@ func Rows(
 	return rows
 }
 
-func generateComponentProviders(
-	components []models.Component,
-	providers []models.Provider,
-	providersPerComponent int,
-) map[models.Component][]models.Provider {
+func generateComponentProviders(components []models.Component, providers []models.Provider, providersPerComponent Range) map[models.Component][]models.Provider {
 	componentProviders := make(map[models.Component][]models.Provider)
 
 	for _, component := range components {
-		for i := 0; i < providersPerComponent; i++ {
+		for i := 0; i < providersPerComponent.Random(); i++ {
 			provider := providers[rand.Intn(len(providers))] //nolint:gosec
 			componentProviders[component] = append(componentProviders[component], provider)
 		}
@@ -85,15 +75,11 @@ func generateComponentProviders(
 	return componentProviders
 }
 
-func generateEngineComponents(
-	engines []models.Engine,
-	components []models.Component,
-	componentsPerEngine int,
-) map[models.Engine][]models.Component {
+func generateEngineComponents(engines []models.Engine, components []models.Component, componentsPerEngine Range) map[models.Engine][]models.Component {
 	engineComponents := make(map[models.Engine][]models.Component)
 
 	for _, engine := range engines {
-		for i := 0; i < componentsPerEngine; i++ {
+		for i := 0; i < componentsPerEngine.Random(); i++ {
 			component := components[rand.Intn(len(components))] //nolint:gosec
 			engineComponents[engine] = append(engineComponents[engine], component)
 		}

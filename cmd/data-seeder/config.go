@@ -1,5 +1,9 @@
 package main
 
+import (
+	"github.com/iskorotkov/spaceship-engine-production/internal/generate"
+)
+
 type Config struct {
 	Output IOEntry
 	Data   Data
@@ -35,7 +39,7 @@ type Links struct {
 }
 
 type Link struct {
-	Count int
+	Count generate.Range
 }
 
 type GeneratedHumanNames struct {

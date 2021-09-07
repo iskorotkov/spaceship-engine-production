@@ -6,11 +6,17 @@ data:
   seed: 1
   links:
     clientOrders:
-      count: 3
+      count:
+        min: 3
+        max: 8
     engineComponents:
-      count: 3
+      count:
+        min: 3
+        max: 8
     componentProviders:
-      count: 3
+      count:
+        min: 3
+        max: 8
 
   clients:
     count: 5
