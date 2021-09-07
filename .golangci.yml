@@ -6,3 +6,6 @@ linters:
     - golint
     - maligned
     - scopelint
+run:
+  skip-dirs:
+    - api
