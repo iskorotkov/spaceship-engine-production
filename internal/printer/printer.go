@@ -29,8 +29,11 @@ func (s Server) Print(_ context.Context, req *api.PrintRequest) (*api.PrintRespo
 	sheet := f.NewSheet(sheetName)
 	f.SetActiveSheet(sheet)
 
-	_ = f.SetColWidth(sheetName, "A", "A", 40)
-	_ = f.SetColWidth(sheetName, "B", "C", 15)
+	const nameWidth = 40
+	_ = f.SetColWidth(sheetName, "A", "A", nameWidth)
+
+	const valueWidth = 15
+	_ = f.SetColWidth(sheetName, "B", "C", valueWidth)
 
 	_ = f.SetCellStr(sheetName, "A1", "Total orders:")
 	_ = f.SetCellInt(sheetName, "B1", int(req.TotalOrders))
@@ -63,7 +66,7 @@ func (s Server) Print(_ context.Context, req *api.PrintRequest) (*api.PrintRespo
 
 	for _, engine := range req.TopEngines {
 		_ = f.SetCellStr(sheetName, fmt.Sprintf("A%d", row), engine.Name)
-		_ = f.SetCellFloat(sheetName, fmt.Sprintf("B%d", row), engine.Power, floatPrecision, 64)
+		_ = f.SetCellFloat(sheetName, fmt.Sprintf("B%d", row), engine.Power, floatPrecision, 64) //nolint:gomnd
 		_ = f.SetCellInt(sheetName, fmt.Sprintf("C%d", row), int(engine.Orders))
 		row++
 	}

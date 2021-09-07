@@ -10,5 +10,6 @@ type Range struct {
 
 func (r Range) Random() int {
 	min, max := r.Min, r.Max
+
 	return min + rand.Intn(max-min) //nolint:gosec
 }

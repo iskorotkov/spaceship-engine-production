@@ -8,7 +8,13 @@ import (
 
 const maxOrderAmount = 20
 
-func Rows(clients []models.Client, engines []models.Engine, components []models.Component, providers []models.Provider, ordersPerClient, componentsPerEngine, providersPerComponent Range) []models.Row {
+func Rows(
+	clients []models.Client,
+	engines []models.Engine,
+	components []models.Component,
+	providers []models.Provider,
+	ordersPerClient, componentsPerEngine, providersPerComponent Range,
+) []models.Row {
 	engineComponents := generateEngineComponents(engines, components, componentsPerEngine)
 	componentProviders := generateComponentProviders(components, providers, providersPerComponent)
 
@@ -62,7 +68,11 @@ func Rows(clients []models.Client, engines []models.Engine, components []models.
 	return rows
 }
 
-func generateComponentProviders(components []models.Component, providers []models.Provider, providersPerComponent Range) map[models.Component][]models.Provider {
+func generateComponentProviders(
+	components []models.Component,
+	providers []models.Provider,
+	providersPerComponent Range,
+) map[models.Component][]models.Provider {
 	componentProviders := make(map[models.Component][]models.Provider)
 
 	for _, component := range components {
@@ -75,7 +85,11 @@ func generateComponentProviders(components []models.Component, providers []model
 	return componentProviders
 }
 
-func generateEngineComponents(engines []models.Engine, components []models.Component, componentsPerEngine Range) map[models.Engine][]models.Component {
+func generateEngineComponents(
+	engines []models.Engine,
+	components []models.Component,
+	componentsPerEngine Range,
+) map[models.Engine][]models.Component {
 	engineComponents := make(map[models.Engine][]models.Component)
 
 	for _, engine := range engines {

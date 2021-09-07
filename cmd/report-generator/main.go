@@ -38,7 +38,9 @@ func main() {
 
 	_, err = printer.Print(context.Background(), req)
 	if err != nil {
-		log.Fatalf("error processing print request: %v", err)
+		log.Printf("error processing print request: %v", err)
+
+		return
 	}
 }
 
