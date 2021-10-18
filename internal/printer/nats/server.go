@@ -27,6 +27,8 @@ func NewServer(url string) (Server, error) {
 
 	service := printer.New()
 
+	log.Printf("nats server created")
+
 	return Server{
 		client:       nc,
 		subscription: nil,
@@ -34,8 +36,8 @@ func NewServer(url string) (Server, error) {
 	}, nil
 }
 
-func (s *Server) Subscribe(ctx context.Context) error {
-	subscription, err := s.client.Subscribe(SubjectPrintRequests, func(msg *nats.Msg) {
+func (s *Server) Subscribe(ctx context.Context, subj string) error {
+	subscription, err := s.client.Subscribe(subj, func(msg *nats.Msg) {
 		var req api.PrintRequest
 
 		if err := json.Unmarshal(msg.Data, &req); err != nil {
@@ -49,6 +51,8 @@ func (s *Server) Subscribe(ctx context.Context) error {
 
 			return
 		}
+
+		log.Printf("processed nats event from subject %q", msg.Subject)
 	})
 	if err != nil {
 		return fmt.Errorf("error subscribing to subject: %w", err)
@@ -59,6 +63,8 @@ func (s *Server) Subscribe(ctx context.Context) error {
 	if err := s.client.FlushWithContext(ctx); err != nil {
 		return fmt.Errorf("error performing nats flush: %w", err)
 	}
+
+	log.Printf("nats server subscribed to %q", subj)
 
 	return nil
 }
@@ -72,6 +78,8 @@ func (s Server) Unsubscribe() error {
 		return fmt.Errorf("error draining subscription: %w", err)
 	}
 
+	log.Printf("nats server unsubscribed from %q", s.subscription.Subject)
+
 	return nil
 }
 
@@ -79,6 +87,8 @@ func (s Server) Close() error {
 	if err := s.client.Drain(); err != nil {
 		return fmt.Errorf("error draining printer server: %w", err)
 	}
+
+	log.Printf("nats server closed")
 
 	return nil
 }

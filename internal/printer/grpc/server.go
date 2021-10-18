@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"fmt"
+	"log"
 	"net"
 
 	"github.com/iskorotkov/spaceship-engine-production/api"
@@ -14,6 +15,8 @@ type Server struct {
 }
 
 func NewServer(port int) Server {
+	log.Printf("grpc server created")
+
 	return Server{
 		port: port,
 	}
@@ -27,6 +30,8 @@ func (s Server) Listen() error {
 
 	grpcServer := grpc.NewServer()
 	api.RegisterReportPrinterServer(grpcServer, printer.New())
+
+	log.Printf("grpc server started listening on port %d", s.port)
 
 	if err := grpcServer.Serve(lis); err != nil {
 		return fmt.Errorf("error in grpc server: %w", err)

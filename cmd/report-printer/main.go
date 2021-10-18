@@ -15,6 +15,8 @@ const timeout = time.Second * 10
 func main() {
 	config := readConfig()
 
+	log.Printf("starting nats and grpc servers")
+
 	natsServer, err := nats.NewServer(config.Input.Nats.Address)
 	if err != nil {
 		log.Fatalf("error creating nats server: %v", err)

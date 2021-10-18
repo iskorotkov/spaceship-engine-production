@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 
 	"github.com/iskorotkov/spaceship-engine-production/internal/printer"
 	"github.com/nats-io/nats.go"
@@ -20,6 +21,8 @@ func NewClient(url string) (Client, error) {
 	if err != nil {
 		return Client{}, fmt.Errorf("error creating nats client: %w", err)
 	}
+
+	log.Printf("nats client created")
 
 	return Client{
 		client: nc,
@@ -40,11 +43,15 @@ func (c Client) Print(ctx context.Context, req printer.Request) error {
 		return fmt.Errorf("error performing nats flush: %w", err)
 	}
 
+	log.Printf("nats client sent request")
+
 	return nil
 }
 
 func (c Client) Close() error {
 	c.client.Close()
+
+	log.Printf("nats client closed")
 
 	return nil
 }

@@ -3,6 +3,7 @@ package printer
 import (
 	"context"
 	"fmt"
+	"log"
 
 	"github.com/iskorotkov/spaceship-engine-production/api"
 	"github.com/xuri/excelize/v2"
@@ -19,6 +20,8 @@ type Printer struct {
 }
 
 func New() *Printer {
+	log.Printf("printer created")
+
 	return &Printer{} //nolint:exhaustivestruct
 }
 
@@ -74,6 +77,8 @@ func (s Printer) Print(_ context.Context, req *api.PrintRequest) (*api.PrintResp
 	if err := f.SaveAs(req.Filepath); err != nil {
 		return nil, status.Errorf(codes.Internal, "error saving file: %v", err)
 	}
+
+	log.Printf("printer wrote file %q", req.Filepath)
 
 	return &api.PrintResponse{}, nil
 }

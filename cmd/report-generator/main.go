@@ -24,9 +24,15 @@ func main() {
 	config := readConfig()
 	db := setupDB(config)
 
+	log.Printf("generating report")
+
 	totalOrders := getTotalOrders(db)
 	topClients := getTopClients(db)
 	topEngines := getTopEngines(db)
+
+	req := createRequest(totalOrders, topClients, topEngines, config)
+
+	log.Printf("creating a client based on config value %q", config.Client)
 
 	var (
 		client printer.Client
@@ -46,7 +52,7 @@ func main() {
 		log.Fatalf("error creating printer client: %v", err)
 	}
 
-	req := createRequest(totalOrders, topClients, topEngines, config)
+	log.Printf("sending report print request")
 
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
