@@ -29,14 +29,25 @@ services:
     restart: always
     networks:
       printers:
+      mq:
     ports:
       - "8080:8080"
     volumes:
       - "./results/:/results/:z"
 
+  nats-server:
+    image: nats:2.6
+    restart: always
+    networks:
+      data:
+      mq:
+    ports:
+      - "4222:4222"
+
 networks:
   data:
   printers:
+  mq:
 
 volumes:
   postgres-data:

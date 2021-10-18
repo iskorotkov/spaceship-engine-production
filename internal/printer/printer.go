@@ -12,17 +12,17 @@ import (
 
 const floatPrecision = 2
 
-var _ = (api.ReportPrinterServer)(Server{}) //nolint:exhaustivestruct
+var _ = (api.ReportPrinterServer)(Printer{}) //nolint:exhaustivestruct
 
-type Server struct {
+type Printer struct {
 	api.UnimplementedReportPrinterServer
 }
 
-func NewServer() *Server {
-	return &Server{} //nolint:exhaustivestruct
+func New() *Printer {
+	return &Printer{} //nolint:exhaustivestruct
 }
 
-func (s Server) Print(_ context.Context, req *api.PrintRequest) (*api.PrintResponse, error) {
+func (s Printer) Print(_ context.Context, req *api.PrintRequest) (*api.PrintResponse, error) {
 	sheetName := "Report"
 
 	f := excelize.NewFile()

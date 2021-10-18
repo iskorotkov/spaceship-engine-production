@@ -1,0 +1,5 @@
+port: 8080
+
+input:
+  nats:
+    address: nats-server:4222

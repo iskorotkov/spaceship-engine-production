@@ -3,16 +3,22 @@ package main
 import (
 	"context"
 	"log"
+	"time"
 
 	"github.com/iskorotkov/spaceship-engine-production/api"
 	"github.com/iskorotkov/spaceship-engine-production/internal/models"
+	"github.com/iskorotkov/spaceship-engine-production/internal/printer"
+	"github.com/iskorotkov/spaceship-engine-production/internal/printer/grpc"
+	"github.com/iskorotkov/spaceship-engine-production/internal/printer/nats"
 	"github.com/spf13/viper"
-	"google.golang.org/grpc"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
-const topListSize = 10
+const (
+	topListSize = 10
+	timeout     = time.Second * 10
+)
 
 func main() {
 	config := readConfig()
@@ -22,22 +28,30 @@ func main() {
 	topClients := getTopClients(db)
 	topEngines := getTopEngines(db)
 
-	req := createRequest(totalOrders, topClients, topEngines, config)
+	var (
+		client printer.Client
+		err    error
+	)
 
-	conn, err := grpc.Dial(config.Output.Server.Address,
-		grpc.WithInsecure())
-	if err != nil {
-		log.Fatalf("error creating grpc connection: %v", err)
+	switch config.Client {
+	case ClientGRPC:
+		client, err = grpc.NewClient(config.Output.Server.Address)
+	case ClientNATS:
+		client, err = nats.NewClient(config.Output.Nats.Address)
+	default:
+		log.Fatalf("invalid client in config file: client %q not supported", config.Client)
 	}
 
-	defer func(conn *grpc.ClientConn) {
-		_ = conn.Close()
-	}(conn)
-
-	printer := api.NewReportPrinterClient(conn)
-
-	_, err = printer.Print(context.Background(), req)
 	if err != nil {
+		log.Fatalf("error creating printer client: %v", err)
+	}
+
+	req := createRequest(totalOrders, topClients, topEngines, config)
+
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	if err = client.Print(ctx, req); err != nil {
 		log.Printf("error processing print request: %v", err)
 
 		return
