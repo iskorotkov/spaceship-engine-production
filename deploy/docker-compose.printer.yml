@@ -1,0 +1,53 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:13
+    restart: always
+    networks:
+      data:
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready"]
+      interval: 10s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  report-printer:
+    image: report-printer
+    build:
+      context: ..
+      dockerfile: ./build/report-printer.dockerfile
+    restart: always
+    networks:
+      printers:
+      mq:
+    ports:
+      - "8080:8080"
+    volumes:
+      - "../results/:/results/:z"
+
+  nats-server:
+    image: nats:2.6
+    restart: always
+    networks:
+      data:
+      mq:
+    ports:
+      - "4222:4222"
+
+networks:
+  data:
+  printers:
+  mq:
+
+volumes:
+  postgres-data:
