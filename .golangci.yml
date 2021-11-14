@@ -2,10 +2,17 @@ linters:
   fast: false
   enable-all: true
   disable:
+    # Deprecated:
     - interfacer
     - golint
     - maligned
     - scopelint
+      # Annoying:
+    - nlreturn
+    - gochecknoglobals
+    - prealloc
+    - gomnd
+    - wsl
 run:
   skip-dirs:
     - api
