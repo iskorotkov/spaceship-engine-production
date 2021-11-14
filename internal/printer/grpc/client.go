@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/iskorotkov/spaceship-engine-production/api"
+	"github.com/iskorotkov/spaceship-engine-production/api/report-printer"
 	"github.com/iskorotkov/spaceship-engine-production/internal/printer"
 	"google.golang.org/grpc"
 )
@@ -14,7 +14,7 @@ var _ = (printer.Client)(Client{}) //nolint:exhaustivestruct
 
 type Client struct {
 	conn   *grpc.ClientConn
-	client api.ReportPrinterClient
+	client report_printer.ReportPrinterClient
 }
 
 func NewClient(url string) (Client, error) {
@@ -24,7 +24,7 @@ func NewClient(url string) (Client, error) {
 		log.Fatalf("error creating grpc connection: %v", err)
 	}
 
-	client := api.NewReportPrinterClient(conn)
+	client := report_printer.NewReportPrinterClient(conn)
 
 	log.Printf("grpc client created")
 

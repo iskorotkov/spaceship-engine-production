@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option go_package = "github.com/iskorotkov/spaceship-engine-production/api";
+option go_package = "github.com/iskorotkov/spaceship-engine-production/api/report-printer";
 
 service ReportPrinter {
   rpc Print(PrintRequest) returns (PrintResponse) {}

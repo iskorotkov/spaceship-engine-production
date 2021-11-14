@@ -5,7 +5,7 @@ import (
 	"log"
 	"net"
 
-	"github.com/iskorotkov/spaceship-engine-production/api"
+	"github.com/iskorotkov/spaceship-engine-production/api/report-printer"
 	"github.com/iskorotkov/spaceship-engine-production/internal/printer"
 	"google.golang.org/grpc"
 )
@@ -29,7 +29,7 @@ func (s Server) Listen() error {
 	}
 
 	grpcServer := grpc.NewServer()
-	api.RegisterReportPrinterServer(grpcServer, printer.New())
+	report_printer.RegisterReportPrinterServer(grpcServer, printer.New())
 
 	log.Printf("grpc server started listening on port %d", s.port)
 

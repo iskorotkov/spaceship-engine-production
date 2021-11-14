@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/iskorotkov/spaceship-engine-production/api"
+	"github.com/iskorotkov/spaceship-engine-production/api/report-printer"
 	"github.com/xuri/excelize/v2"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -13,10 +13,10 @@ import (
 
 const floatPrecision = 2
 
-var _ = (api.ReportPrinterServer)(Printer{}) //nolint:exhaustivestruct
+var _ = (report_printer.ReportPrinterServer)(Printer{}) //nolint:exhaustivestruct
 
 type Printer struct {
-	api.UnimplementedReportPrinterServer
+	report_printer.UnimplementedReportPrinterServer
 }
 
 func New() *Printer {
@@ -25,7 +25,7 @@ func New() *Printer {
 	return &Printer{} //nolint:exhaustivestruct
 }
 
-func (s Printer) Print(_ context.Context, req *api.PrintRequest) (*api.PrintResponse, error) {
+func (s Printer) Print(_ context.Context, req *report_printer.PrintRequest) (*report_printer.PrintResponse, error) {
 	sheetName := "Report"
 
 	f := excelize.NewFile()
@@ -80,5 +80,5 @@ func (s Printer) Print(_ context.Context, req *api.PrintRequest) (*api.PrintResp
 
 	log.Printf("printer wrote file %q", req.Filepath)
 
-	return &api.PrintResponse{}, nil
+	return &report_printer.PrintResponse{}, nil
 }

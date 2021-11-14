@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/iskorotkov/spaceship-engine-production/api"
+	"github.com/iskorotkov/spaceship-engine-production/api/report-printer"
 	"github.com/iskorotkov/spaceship-engine-production/internal/printer"
 	"github.com/nats-io/nats.go"
 )
@@ -38,7 +38,7 @@ func NewServer(url string) (Server, error) {
 
 func (s *Server) Subscribe(ctx context.Context, subj string) error {
 	subscription, err := s.client.Subscribe(subj, func(msg *nats.Msg) {
-		var req api.PrintRequest
+		var req report_printer.PrintRequest
 
 		if err := json.Unmarshal(msg.Data, &req); err != nil {
 			log.Printf("error unmarshaling message data: %v", err)

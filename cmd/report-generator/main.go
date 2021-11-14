@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/iskorotkov/spaceship-engine-production/api"
+	"github.com/iskorotkov/spaceship-engine-production/api/report-printer"
 	"github.com/iskorotkov/spaceship-engine-production/internal/models"
 	"github.com/iskorotkov/spaceship-engine-production/internal/printer"
 	"github.com/iskorotkov/spaceship-engine-production/internal/printer/grpc"
@@ -64,27 +64,27 @@ func main() {
 	}
 }
 
-func createRequest(totalOrders int64, topClients []clientDTO, topEngines []engineDTO, config Config) *api.PrintRequest {
-	reqClients := make([]*api.Client, 0, len(topClients))
+func createRequest(totalOrders int64, topClients []clientDTO, topEngines []engineDTO, config Config) *report_printer.PrintRequest {
+	reqClients := make([]*report_printer.Client, 0, len(topClients))
 
 	for _, c := range topClients {
-		reqClients = append(reqClients, &api.Client{
+		reqClients = append(reqClients, &report_printer.Client{
 			Name:   c.Name,
 			Orders: int32(c.OrdersCount),
 		})
 	}
 
-	reqEngines := make([]*api.Engine, 0, len(topEngines))
+	reqEngines := make([]*report_printer.Engine, 0, len(topEngines))
 
 	for _, e := range topEngines {
-		reqEngines = append(reqEngines, &api.Engine{
+		reqEngines = append(reqEngines, &report_printer.Engine{
 			Name:   e.Name,
 			Power:  e.Power,
 			Orders: int32(e.OrdersCount),
 		})
 	}
 
-	req := &api.PrintRequest{
+	req := &report_printer.PrintRequest{
 		Filepath:    config.Output.Excel.File,
 		TotalOrders: int32(totalOrders),
 		TopClients:  reqClients,

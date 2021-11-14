@@ -3,10 +3,10 @@ package printer
 import (
 	"context"
 
-	"github.com/iskorotkov/spaceship-engine-production/api"
+	"github.com/iskorotkov/spaceship-engine-production/api/report-printer"
 )
 
-type Request *api.PrintRequest
+type Request *report_printer.PrintRequest
 
 type Client interface {
 	Print(ctx context.Context, req Request) error
