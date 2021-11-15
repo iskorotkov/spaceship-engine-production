@@ -21,15 +21,15 @@ type Client struct {
 	m        sync.RWMutex
 }
 
-func NewClient(addr string, config *tls.Config) (Client, error) {
+func NewClient(addr string, config *tls.Config) (*Client, error) {
 	nc, err := nats.Connect(addr, nats.Secure(config))
 	if err != nil {
-		return Client{}, fmt.Errorf("error creating nats connection: %w", err)
+		return nil, fmt.Errorf("error creating nats connection: %w", err)
 	}
 
 	log.Printf("nats connection created")
 
-	return Client{
+	return &Client{
 		nats:     nc,
 		lastResp: nil,
 		m:        sync.RWMutex{},

@@ -35,7 +35,7 @@ func main() {
 	}
 	defer natsClient.Close()
 
-	clients := []transport.Client{tcpClient, &natsClient}
+	clients := []transport.Client{tcpClient, natsClient}
 
 	for _, c := range clients {
 		if err := c.Send("ping", "hi"); err != nil {
