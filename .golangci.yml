@@ -13,6 +13,7 @@ linters:
     - prealloc
     - gomnd
     - wsl
+    - varnamelen
 run:
   skip-dirs:
     - api

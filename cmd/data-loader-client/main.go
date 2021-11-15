@@ -18,7 +18,9 @@ var log = logpkg.New(os.Stderr, "[main] ", logpkg.LstdFlags|logpkg.Lmsgprefix|lo
 
 func main() {
 	config := readConfig()
-	// db := setupDB(config)
+	db := setupDB(config.ConnString)
+
+	transport.RegisterModels()
 
 	quicClient, err := quic.NewClient(config.AddrQUIC, &tls.Config{InsecureSkipVerify: true})
 	if err != nil {
@@ -44,19 +46,75 @@ func main() {
 			log.Fatalf("error receiving ping response: %v", err)
 		}
 
-		_ = resp
+		log.Printf("ping returned %v", resp)
+	}
+
+	selectClient := func(i int) transport.Client {
+		return clients[i%len(clients)]
+	}
+
+	for i, value := range must(normalizeClients(db)).([]models.Client) {
+		if err := selectClient(i).Send("save/client", value); err != nil {
+			log.Fatalf("error saving client: %v", err)
+		}
+	}
+
+	for i, value := range must(normalizeComponents(db)).([]models.Component) {
+		if err := selectClient(i).Send("save/component", value); err != nil {
+			log.Fatalf("error saving component: %v", err)
+		}
+	}
+
+	for i, value := range must(normalizeEngines(db)).([]models.Engine) {
+		if err := selectClient(i).Send("save/engine", value); err != nil {
+			log.Fatalf("error saving engine: %v", err)
+		}
+	}
+
+	for i, value := range must(normalizeOrders(db)).([]models.Order) {
+		if err := selectClient(i).Send("save/order", value); err != nil {
+			log.Fatalf("error saving order: %v", err)
+		}
+	}
+
+	for i, value := range must(normalizeProviders(db)).([]models.Provider) {
+		if err := selectClient(i).Send("save/provider", value); err != nil {
+			log.Fatalf("error saving provider: %v", err)
+		}
+	}
+
+	for i, value := range must(normalizeRequirements(db)).([]models.Requirement) {
+		if err := selectClient(i).Send("save/requirement", value); err != nil {
+			log.Fatalf("error saving requirement: %v", err)
+		}
+	}
+
+	for i, value := range must(normalizeSupplies(db)).([]models.Supply) {
+		if err := selectClient(i).Send("save/supply", value); err != nil {
+			log.Fatalf("error saving supply: %v", err)
+		}
 	}
 }
 
-func normalizeSupplies(inputDB *gorm.DB, outputDB *gorm.DB, batchSize int) {
+func must(v interface{}, err error) interface{} {
+	if err != nil {
+		log.Fatalf("error is not nil: %v", err)
+	}
+
+	return v
+}
+
+func normalizeSupplies(inputDB *gorm.DB) ([]models.Supply, error) {
 	var rowSupplies []struct {
 		ProviderID, ComponentID uint
 	}
 
-	inputDB.
+	if err := inputDB.
 		Model(&models.Row{}). //nolint:exhaustivestruct
 		Distinct("provider_id, component_id").
-		Find(&rowSupplies)
+		Find(&rowSupplies).Error; err != nil {
+		return nil, err
+	}
 
 	supplies := make([]models.Supply, 0, len(rowSupplies))
 
@@ -70,18 +128,20 @@ func normalizeSupplies(inputDB *gorm.DB, outputDB *gorm.DB, batchSize int) {
 		})
 	}
 
-	outputDB.CreateInBatches(&supplies, batchSize)
+	return supplies, nil
 }
 
-func normalizeRequirements(inputDB *gorm.DB, outputDB *gorm.DB, batchSize int) {
+func normalizeRequirements(inputDB *gorm.DB) ([]models.Requirement, error) {
 	var rowRequirements []struct {
 		EngineID, ComponentID uint
 	}
 
-	inputDB.
+	if err := inputDB.
 		Model(&models.Row{}). //nolint:exhaustivestruct
 		Distinct("engine_id, component_id").
-		Find(&rowRequirements)
+		Find(&rowRequirements).Error; err != nil {
+		return nil, err
+	}
 
 	requirements := make([]models.Requirement, 0, len(rowRequirements))
 
@@ -95,20 +155,22 @@ func normalizeRequirements(inputDB *gorm.DB, outputDB *gorm.DB, batchSize int) {
 		})
 	}
 
-	outputDB.CreateInBatches(&requirements, batchSize)
+	return requirements, nil
 }
 
-func normalizeOrders(inputDB *gorm.DB, outputDB *gorm.DB, batchSize int) {
+func normalizeOrders(inputDB *gorm.DB) ([]models.Order, error) {
 	var rowOrders []struct {
 		models.RowOrder
 		models.RowClient
 		models.RowEngine
 	}
 
-	inputDB.
+	if err := inputDB.
 		Model(&models.Row{}). //nolint:exhaustivestruct
 		Distinct("order_id, order_amount, order_created_at, order_completed_at, client_id, engine_id").
-		Find(&rowOrders)
+		Find(&rowOrders).Error; err != nil {
+		return nil, err
+	}
 
 	orders := make([]models.Order, 0, len(rowOrders))
 
@@ -125,16 +187,18 @@ func normalizeOrders(inputDB *gorm.DB, outputDB *gorm.DB, batchSize int) {
 		})
 	}
 
-	outputDB.CreateInBatches(&orders, batchSize)
+	return orders, nil
 }
 
-func normalizeProviders(inputDB *gorm.DB, outputDB *gorm.DB, batchSize int) {
+func normalizeProviders(inputDB *gorm.DB) ([]models.Provider, error) {
 	var rowProviders []models.RowProvider
 
-	inputDB.
+	if err := inputDB.
 		Model(&models.Row{}). //nolint:exhaustivestruct
 		Distinct("provider_id, provider_name").
-		Find(&rowProviders)
+		Find(&rowProviders).Error; err != nil {
+		return nil, err
+	}
 
 	providers := make([]models.Provider, 0, len(rowProviders))
 
@@ -145,16 +209,18 @@ func normalizeProviders(inputDB *gorm.DB, outputDB *gorm.DB, batchSize int) {
 		})
 	}
 
-	outputDB.CreateInBatches(&providers, batchSize)
+	return providers, nil
 }
 
-func normalizeClients(inputDB *gorm.DB, outputDB *gorm.DB, batchSize int) {
+func normalizeClients(inputDB *gorm.DB) ([]models.Client, error) {
 	var rowClients []models.RowClient
 
-	inputDB.
+	if err := inputDB.
 		Model(&models.Row{}). //nolint:exhaustivestruct
 		Distinct("client_id, client_name").
-		Find(&rowClients)
+		Find(&rowClients).Error; err != nil {
+		return nil, err
+	}
 
 	clients := make([]models.Client, 0, len(rowClients))
 
@@ -165,16 +231,18 @@ func normalizeClients(inputDB *gorm.DB, outputDB *gorm.DB, batchSize int) {
 		})
 	}
 
-	outputDB.CreateInBatches(&clients, batchSize)
+	return clients, nil
 }
 
-func normalizeComponents(inputDB *gorm.DB, outputDB *gorm.DB, batchSize int) {
+func normalizeComponents(inputDB *gorm.DB) ([]models.Component, error) {
 	var rowComponents []models.RowComponent
 
-	inputDB.
+	if err := inputDB.
 		Model(&models.Row{}). //nolint:exhaustivestruct
 		Distinct("component_id, component_name").
-		Find(&rowComponents)
+		Find(&rowComponents).Error; err != nil {
+		return nil, err
+	}
 
 	components := make([]models.Component, 0, len(rowComponents))
 
@@ -185,16 +253,18 @@ func normalizeComponents(inputDB *gorm.DB, outputDB *gorm.DB, batchSize int) {
 		})
 	}
 
-	outputDB.CreateInBatches(&components, batchSize)
+	return components, nil
 }
 
-func normalizeEngines(inputDB *gorm.DB, outputDB *gorm.DB, batchSize int) {
+func normalizeEngines(inputDB *gorm.DB) ([]models.Engine, error) {
 	var rowEngines []models.RowEngine
 
-	inputDB.
+	if err := inputDB.
 		Model(&models.Row{}). //nolint:exhaustivestruct
 		Distinct("engine_id, engine_name, engine_power").
-		Find(&rowEngines)
+		Find(&rowEngines).Error; err != nil {
+		return nil, err
+	}
 
 	engines := make([]models.Engine, 0, len(rowEngines))
 
@@ -206,11 +276,11 @@ func normalizeEngines(inputDB *gorm.DB, outputDB *gorm.DB, batchSize int) {
 		})
 	}
 
-	outputDB.CreateInBatches(&engines, batchSize)
+	return engines, nil
 }
 
-func setupDB(config Config) *gorm.DB {
-	db, err := gorm.Open(sqlite.Open(config.ConnString))
+func setupDB(connString string) *gorm.DB {
+	db, err := gorm.Open(sqlite.Open(connString))
 	if err != nil {
 		log.Fatalf("error opening DB: %v", err)
 	}

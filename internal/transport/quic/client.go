@@ -15,6 +15,7 @@ import (
 var _ = (transport.Client)(Client{})
 
 type Client struct {
+	session quic.Session
 	stream  quic.Stream
 	encoder *gob.Encoder
 	decoder *gob.Decoder
@@ -36,7 +37,7 @@ func NewClient(addr string, tlsConfig *tls.Config) (Client, error) {
 	encoder := gob.NewEncoder(stream)
 	decoder := gob.NewDecoder(stream)
 
-	return Client{stream, encoder, decoder}, nil
+	return Client{session, stream, encoder, decoder}, nil
 }
 
 func (c Client) Send(t transport.Type, value interface{}) error {
@@ -63,5 +64,9 @@ func (c Client) Recv() (interface{}, error) {
 }
 
 func (c Client) Close() error {
+	if err := c.session.CloseWithError(0, "client is closing"); err != nil {
+		return err
+	}
+
 	return c.stream.Close()
 }
