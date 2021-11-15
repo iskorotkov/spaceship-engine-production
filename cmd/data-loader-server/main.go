@@ -24,9 +24,11 @@ func main() {
 
 	transport.RegisterModels()
 
+	tlsConfig := transport.MustCreateTLSConfig(config.CertFile, config.KeyFile, config.RootCA)
+
 	servers := map[string]transport.Server{
-		config.AddrTCP:  &tcp.Server{},
-		config.AddrNATS: &nats.Server{},
+		config.AddrTCP:  tcp.NewServer(),
+		config.AddrNATS: nats.NewServer(),
 	}
 
 	pingHandler := func(req interface{}) (transport.Response, error) {
@@ -63,7 +65,7 @@ func main() {
 	}
 
 	for addr, s := range servers {
-		if err := s.Start(addr); err != nil {
+		if err := s.Start(addr, tlsConfig); err != nil {
 			log.Fatalf("error starting server: %v", err)
 		}
 
@@ -115,6 +117,7 @@ func readConfig() Config {
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath(".")
 	viper.AddConfigPath("./config/data-loader-server")
+	viper.AddConfigPath("/config")
 	viper.AutomaticEnv()
 
 	if err := viper.ReadInConfig(); err != nil {

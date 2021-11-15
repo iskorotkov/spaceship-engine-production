@@ -21,13 +21,15 @@ func main() {
 
 	transport.RegisterModels()
 
-	tcpClient, err := tcp.NewClient(config.AddrTCP)
+	tlsConfig := transport.MustCreateTLSConfig(config.CertFile, config.KeyFile, config.RootCA)
+
+	tcpClient, err := tcp.NewClient(config.AddrTCP, tlsConfig)
 	if err != nil {
 		log.Fatalf("error creating tcp client: %v", err)
 	}
 	defer tcpClient.Close()
 
-	natsClient, err := nats.NewClient(config.AddrNATS)
+	natsClient, err := nats.NewClient(config.AddrNATS, tlsConfig)
 	if err != nil {
 		log.Fatalf("error creating nats client: %v", err)
 	}
@@ -297,6 +299,7 @@ func readConfig() Config {
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath(".")
 	viper.AddConfigPath("./config/data-loader-client")
+	viper.AddConfigPath("/config")
 	viper.AutomaticEnv()
 
 	if err := viper.ReadInConfig(); err != nil {

@@ -2,6 +2,7 @@ package nats
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/gob"
 	"errors"
 	"fmt"
@@ -20,8 +21,8 @@ type Client struct {
 	m        sync.RWMutex
 }
 
-func NewClient(addr string) (Client, error) {
-	nc, err := nats.Connect(addr)
+func NewClient(addr string, config *tls.Config) (Client, error) {
+	nc, err := nats.Connect(addr, nats.Secure(config))
 	if err != nil {
 		return Client{}, fmt.Errorf("error creating nats connection: %w", err)
 	}

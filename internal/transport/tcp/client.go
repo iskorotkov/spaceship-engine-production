@@ -1,6 +1,7 @@
 package tcp
 
 import (
+	"crypto/tls"
 	"encoding/gob"
 	"errors"
 	"fmt"
@@ -19,8 +20,8 @@ type Client struct {
 	decoder *gob.Decoder
 }
 
-func NewClient(addr string) (Client, error) {
-	conn, err := net.Dial("tcp", addr)
+func NewClient(addr string, config *tls.Config) (Client, error) {
+	conn, err := tls.Dial("tcp", addr, config)
 	if err != nil {
 		return Client{}, fmt.Errorf("error creating connection: %w", err)
 	}

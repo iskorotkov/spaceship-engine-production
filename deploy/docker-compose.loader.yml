@@ -27,6 +27,9 @@ services:
       context: ..
       dockerfile: ./build/data-loader-server.dockerfile
     restart: always
+    volumes:
+      - ../config/certs:/certs/:z
+      - ../config/data-loader-server/:/config/:z
     networks:
       db:
       mq:
@@ -36,10 +39,19 @@ services:
   nats-server:
     image: nats:2.6
     restart: always
+    command:
+      - --tls
+      - --tlscert=/certs/nats-server/cert.pem
+      - --tlskey=/certs/nats-server/key.pem
+      - --tlscacert=/certs/rootCA.pem
+      - --tlsverify
+    volumes:
+      - ../config/certs/:/certs/:z
     networks:
       mq:
     ports:
       - "4222:4222"
+      - "8222:8222"
 
 networks:
   db:

@@ -1,5 +1,9 @@
 package transport
 
+import (
+	"crypto/tls"
+)
+
 type Type = string
 
 type Handler func(req interface{}) (Response, error)
@@ -20,7 +24,7 @@ type Client interface {
 }
 
 type Server interface {
-	Start(addr string) error
+	Start(addr string, config *tls.Config) error
 	Handle(t Type, h Handler) error
 	Close() error
 }

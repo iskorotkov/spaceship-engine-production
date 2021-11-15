@@ -2,6 +2,7 @@ package nats
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/gob"
 	"fmt"
 
@@ -15,8 +16,12 @@ type Server struct {
 	nats *nats.Conn
 }
 
-func (s *Server) Start(addr string) error {
-	nc, err := nats.Connect(addr)
+func NewServer() *Server {
+	return &Server{}
+}
+
+func (s *Server) Start(addr string, config *tls.Config) error {
+	nc, err := nats.Connect(addr, nats.Secure(config))
 	if err != nil {
 		return fmt.Errorf("error creating nats connection: %w", err)
 	}

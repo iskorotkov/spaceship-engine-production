@@ -1,6 +1,7 @@
 package tcp
 
 import (
+	"crypto/tls"
 	"encoding/gob"
 	"errors"
 	"fmt"
@@ -18,8 +19,12 @@ type Server struct {
 	listener net.Listener
 }
 
-func (s *Server) Start(addr string) error {
-	listener, err := net.Listen("tcp", addr)
+func NewServer() *Server {
+	return &Server{}
+}
+
+func (s *Server) Start(addr string, config *tls.Config) error {
+	listener, err := tls.Listen("tcp", addr, config)
 	if err != nil {
 		return fmt.Errorf("error starting listener: %w", err)
 	}

@@ -5,4 +5,7 @@ type Config struct {
 	AddrQUIC   string
 	AddrNATS   string
 	ConnString string
+	CertFile   string
+	KeyFile    string
+	RootCA     string
 }
