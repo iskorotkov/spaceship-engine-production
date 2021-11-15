@@ -22,6 +22,7 @@ func main() {
 	transport.RegisterModels()
 
 	tlsConfig := transport.MustCreateTLSConfig(config.CertFile, config.KeyFile, config.RootCA)
+	tlsConfig.InsecureSkipVerify = true
 
 	tcpClient, err := tcp.NewClient(config.AddrTCP, tlsConfig)
 	if err != nil {
