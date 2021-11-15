@@ -1,2 +1,2 @@
 deploy:
-  - okteto stack deploy -f deploy/docker-compose.loader.yml --wait
+  - okteto stack deploy -f deploy/docker-compose.loader.yml --wait --build
