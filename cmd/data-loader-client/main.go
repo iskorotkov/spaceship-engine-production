@@ -1,14 +1,13 @@
 package main
 
 import (
-	"crypto/tls"
 	logpkg "log"
 	"os"
 
 	"github.com/iskorotkov/spaceship-engine-production/internal/models"
 	"github.com/iskorotkov/spaceship-engine-production/internal/transport"
 	"github.com/iskorotkov/spaceship-engine-production/internal/transport/nats"
-	"github.com/iskorotkov/spaceship-engine-production/internal/transport/quic"
+	"github.com/iskorotkov/spaceship-engine-production/internal/transport/tcp"
 	"github.com/spf13/viper"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -22,11 +21,11 @@ func main() {
 
 	transport.RegisterModels()
 
-	quicClient, err := quic.NewClient(config.AddrQUIC, &tls.Config{InsecureSkipVerify: true})
+	tcpClient, err := tcp.NewClient(config.AddrTCP)
 	if err != nil {
-		log.Fatalf("error creating quic client: %v", err)
+		log.Fatalf("error creating tcp client: %v", err)
 	}
-	defer quicClient.Close()
+	defer tcpClient.Close()
 
 	natsClient, err := nats.NewClient(config.AddrNATS)
 	if err != nil {
@@ -34,7 +33,7 @@ func main() {
 	}
 	defer natsClient.Close()
 
-	clients := []transport.Client{quicClient, &natsClient}
+	clients := []transport.Client{tcpClient, &natsClient}
 
 	for _, c := range clients {
 		if err := c.Send("ping", "hi"); err != nil {

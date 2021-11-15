@@ -10,7 +10,7 @@ import (
 	"github.com/iskorotkov/spaceship-engine-production/internal/models"
 	"github.com/iskorotkov/spaceship-engine-production/internal/transport"
 	"github.com/iskorotkov/spaceship-engine-production/internal/transport/nats"
-	"github.com/iskorotkov/spaceship-engine-production/internal/transport/quic"
+	"github.com/iskorotkov/spaceship-engine-production/internal/transport/tcp"
 	"github.com/spf13/viper"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -25,7 +25,7 @@ func main() {
 	transport.RegisterModels()
 
 	servers := map[string]transport.Server{
-		config.AddrQUIC: &quic.Server{},
+		config.AddrTCP:  &tcp.Server{},
 		config.AddrNATS: &nats.Server{},
 	}
 
