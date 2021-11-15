@@ -9,69 +9,86 @@ import (
 	"encoding/gob"
 	"encoding/pem"
 	"fmt"
-	"log"
 	"math/big"
 
+	"github.com/iskorotkov/spaceship-engine-production/internal/transport"
 	"github.com/lucas-clemente/quic-go"
 )
 
-type Handler func(req interface{}) (Response, error)
+var _ = (transport.Server)(&Server{})
 
 type Server struct {
-	handlers map[Type]Handler
+	handlers map[transport.Type]transport.Handler
 }
 
-func (s Server) Start(addr string) error {
+func (s *Server) Start(addr string) error {
 	tlsConfig, err := s.generateTLSConfig()
 	if err != nil {
-		return err
+		return fmt.Errorf("error generating tls config: %w", err)
 	}
 
 	listener, err := quic.ListenAddr(addr, tlsConfig, nil)
 	if err != nil {
-		return err
+		return fmt.Errorf("error starting listener: %w", err)
 	}
-	defer listener.Close()
 
 	log.Printf("listener created")
 
-	for {
-		session, err := listener.Accept(context.Background())
-		if err != nil {
-			return err
-		}
+	go func() {
+		defer listener.Close()
 
-		log.Printf("session created")
-
-		go func() {
-			stream, err := session.AcceptStream(context.Background())
+		for {
+			session, err := listener.Accept(context.Background())
 			if err != nil {
-				log.Print(err)
+				log.Printf("error accepting session: %v", err)
+				return
 			}
 
-			log.Printf("stream created")
+			log.Printf("session created")
 
-			if err := s.handleConnection(stream); err != nil {
-				log.Print(err)
-			}
-		}()
-	}
+			go func() {
+				stream, err := session.AcceptStream(context.Background())
+				if err != nil {
+					log.Printf("error accepting stream: %v", err)
+					return
+				}
+
+				log.Printf("stream created")
+
+				if err := s.handleConnection(stream); err != nil {
+					log.Printf("error handling connection: %v", err)
+					return
+				}
+			}()
+		}
+	}()
+
+	return nil
 }
 
-func (s *Server) Handle(t Type, h Handler) {
+func (s *Server) Handle(t transport.Type, h transport.Handler) error {
 	if s.handlers == nil {
-		s.handlers = make(map[string]Handler)
+		s.handlers = make(map[string]transport.Handler)
 	}
 
 	s.handlers[t] = h
+
+	log.Printf("added quic handler for %v", t)
+
+	return nil
 }
 
-func (s Server) handleConnection(stream quic.Stream) error {
+func (s *Server) Close() error {
+	// Closing currently not supported.
+	return nil
+}
+
+func (s *Server) handleConnection(stream quic.Stream) error {
 	encoder := gob.NewEncoder(stream)
 	decoder := gob.NewDecoder(stream)
 
 	for {
-		var req Request
+		var req transport.Request
 		if err := decoder.Decode(&req); err != nil {
 			return err
 		}
@@ -92,7 +109,7 @@ func (s Server) handleConnection(stream quic.Stream) error {
 			return err
 		}
 
-		log.Printf("response sent")
+		log.Printf("sent response %v", resp.Message)
 	}
 }
 

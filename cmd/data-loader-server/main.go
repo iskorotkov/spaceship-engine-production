@@ -1,29 +1,50 @@
 package main
 
 import (
-	"log"
+	logpkg "log"
+	"os"
+	"os/signal"
 
 	"github.com/iskorotkov/spaceship-engine-production/internal/models"
-	"github.com/iskorotkov/spaceship-engine-production/internal/transports/quic"
+	"github.com/iskorotkov/spaceship-engine-production/internal/transport"
+	"github.com/iskorotkov/spaceship-engine-production/internal/transport/nats"
+	"github.com/iskorotkov/spaceship-engine-production/internal/transport/quic"
 	"github.com/spf13/viper"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
+var log = logpkg.New(os.Stderr, "[main] ", logpkg.LstdFlags|logpkg.Lmsgprefix|logpkg.Lshortfile)
+
 func main() {
 	config := readConfig()
 	// db := setupDB(config.ConnString)
 
-	var server quic.Server
-	server.Handle("ping", func(req interface{}) (quic.Response, error) {
-		return quic.Response{
-			Message: "hello there",
-		}, nil
-	})
-
-	if err := server.Start(config.Addr); err != nil {
-		log.Fatal(err)
+	servers := map[string]transport.Server{
+		config.AddrQUIC: &quic.Server{},
+		config.AddrNATS: &nats.Server{},
 	}
+
+	for addr, s := range servers {
+		if err := s.Start(addr); err != nil {
+			log.Fatalf("error starting server: %v", err)
+		}
+
+		log.Printf("server started at %s", addr)
+
+		if err := s.Handle("ping", func(req interface{}) (transport.Response, error) {
+			return transport.Response{
+				Message: "hello there",
+			}, nil
+		}); err != nil {
+			log.Fatalf("error adding handler: %w", err)
+		}
+	}
+
+	done := make(chan os.Signal, 1)
+	signal.Notify(done, os.Interrupt)
+
+	<-done
 }
 
 func setupDB(connString string) *gorm.DB {

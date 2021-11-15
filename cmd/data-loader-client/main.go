@@ -2,36 +2,50 @@ package main
 
 import (
 	"crypto/tls"
-	"log"
+	logpkg "log"
+	"os"
 
 	"github.com/iskorotkov/spaceship-engine-production/internal/models"
-	"github.com/iskorotkov/spaceship-engine-production/internal/transports/quic"
+	"github.com/iskorotkov/spaceship-engine-production/internal/transport"
+	"github.com/iskorotkov/spaceship-engine-production/internal/transport/nats"
+	"github.com/iskorotkov/spaceship-engine-production/internal/transport/quic"
 	"github.com/spf13/viper"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
+var log = logpkg.New(os.Stderr, "[main] ", logpkg.LstdFlags|logpkg.Lmsgprefix|logpkg.Lshortfile)
+
 func main() {
 	config := readConfig()
 	// db := setupDB(config)
 
-	client, err := quic.New(config.Addr, &tls.Config{InsecureSkipVerify: true})
+	quicClient, err := quic.NewClient(config.AddrQUIC, &tls.Config{InsecureSkipVerify: true})
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("error creating quic client: %v", err)
 	}
+	defer quicClient.Close()
 
-	defer client.Close()
-
-	if err := client.Send("ping", "hi"); err != nil {
-		log.Fatal(err)
-	}
-
-	resp, err := client.Recv()
+	natsClient, err := nats.NewClient(config.AddrNATS)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("error creating nats client: %v", err)
 	}
+	defer natsClient.Close()
 
-	log.Printf("received %q", resp)
+	clients := []transport.Client{quicClient, &natsClient}
+
+	for _, c := range clients {
+		if err := c.Send("ping", "hi"); err != nil {
+			log.Fatalf("error sending ping request: %v", err)
+		}
+
+		resp, err := c.Recv()
+		if err != nil {
+			log.Fatalf("error receiving ping response: %v", err)
+		}
+
+		_ = resp
+	}
 }
 
 func normalizeSupplies(inputDB *gorm.DB, outputDB *gorm.DB, batchSize int) {

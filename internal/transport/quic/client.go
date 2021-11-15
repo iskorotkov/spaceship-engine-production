@@ -6,11 +6,13 @@ import (
 	"encoding/gob"
 	"errors"
 	"io"
-	"log"
 	"time"
 
+	"github.com/iskorotkov/spaceship-engine-production/internal/transport"
 	"github.com/lucas-clemente/quic-go"
 )
+
+var _ = (transport.Client)(Client{})
 
 type Client struct {
 	stream  quic.Stream
@@ -18,7 +20,7 @@ type Client struct {
 	decoder *gob.Decoder
 }
 
-func New(addr string, tlsConfig *tls.Config) (Client, error) {
+func NewClient(addr string, tlsConfig *tls.Config) (Client, error) {
 	tlsConfig.NextProtos = append(tlsConfig.NextProtos, "x-quic")
 
 	session, err := quic.DialAddr(addr, tlsConfig, nil)
@@ -37,13 +39,13 @@ func New(addr string, tlsConfig *tls.Config) (Client, error) {
 	return Client{stream, encoder, decoder}, nil
 }
 
-func (c Client) Send(t Type, value interface{}) error {
+func (c Client) Send(t transport.Type, value interface{}) error {
 	log.Printf("sending %v", value)
-	return c.encoder.Encode(Request{t, value})
+	return c.encoder.Encode(transport.Request{Type: t, Message: value})
 }
 
 func (c Client) Recv() (interface{}, error) {
-	var resp Response
+	var resp transport.Response
 	for {
 		if err := c.decoder.Decode(&resp); errors.Is(err, io.EOF) {
 			log.Printf("waiting for response")
@@ -54,7 +56,7 @@ func (c Client) Recv() (interface{}, error) {
 			return nil, err
 		}
 
-		log.Printf("got response")
+		log.Printf("got response %v", resp.Message)
 
 		return resp.Message, nil
 	}

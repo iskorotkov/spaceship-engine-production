@@ -1,6 +1,7 @@
 package main
 
 type Config struct {
-	Addr       string
+	AddrQUIC   string
+	AddrNATS   string
 	ConnString string
 }
