@@ -3,6 +3,7 @@ package nats
 import (
 	"bytes"
 	"encoding/gob"
+	"errors"
 	"fmt"
 	"sync"
 	"time"
@@ -15,7 +16,7 @@ var _ = (transport.Client)(&Client{})
 
 type Client struct {
 	nats     *nats.Conn
-	lastResp interface{}
+	lastResp *nats.Msg
 	m        sync.RWMutex
 }
 
@@ -42,24 +43,17 @@ func (c *Client) Send(t transport.Type, value interface{}) error {
 		return fmt.Errorf("error marshaling request to json: %w", err)
 	}
 
-	natsResp, err := c.nats.Request(t, b.Bytes(), time.Minute)
+	resp, err := c.nats.Request(t, b.Bytes(), time.Minute)
 	if err != nil {
 		return fmt.Errorf("error publishing request: %w", err)
 	}
 
 	log.Printf("nats client sent request")
 
-	decoder := gob.NewDecoder(bytes.NewReader(natsResp.Data))
-
-	var resp transport.Response
-	if err := decoder.Decode(&resp); err != nil {
-		return fmt.Errorf("error decoding response: %w", err)
-	}
-
 	c.m.Lock()
 	defer c.m.Unlock()
 
-	c.lastResp = resp.Message
+	c.lastResp = resp
 
 	return nil
 }
@@ -68,9 +62,24 @@ func (c *Client) Recv() (interface{}, error) {
 	c.m.RLock()
 	defer c.m.RUnlock()
 
-	log.Printf("got nats response %v", c.lastResp)
+	if c.lastResp == nil {
+		return nil, fmt.Errorf("no response available")
+	}
 
-	return c.lastResp, nil
+	if err := c.lastResp.Header.Get("error"); err != "" {
+		return nil, errors.New(err)
+	}
+
+	decoder := gob.NewDecoder(bytes.NewReader(c.lastResp.Data))
+
+	var resp transport.Response
+	if err := decoder.Decode(&resp); err != nil {
+		return nil, fmt.Errorf("error decoding response: %w", err)
+	}
+
+	log.Printf("got nats response %v", resp.Message)
+
+	return resp.Message, nil
 }
 
 func (c *Client) Close() error {

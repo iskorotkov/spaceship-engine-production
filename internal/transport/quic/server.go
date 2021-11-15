@@ -57,6 +57,7 @@ func (s *Server) Start(addr string) error {
 
 				if err := s.handleConnection(stream); err != nil {
 					log.Printf("error handling connection: %v", err)
+					session.CloseWithError(1, err.Error())
 					return
 				}
 			}()
@@ -84,6 +85,8 @@ func (s *Server) Close() error {
 }
 
 func (s *Server) handleConnection(stream quic.Stream) error {
+	defer stream.Close()
+
 	encoder := gob.NewEncoder(stream)
 	decoder := gob.NewDecoder(stream)
 

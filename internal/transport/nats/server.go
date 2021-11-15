@@ -42,6 +42,14 @@ func (s *Server) Handle(t transport.Type, h transport.Handler) error {
 
 		resp, err := h(req.Message)
 		if err != nil {
+			m := nats.NewMsg(msg.Reply)
+			m.Header.Add("error", err.Error())
+
+			if err := msg.RespondMsg(m); err != nil {
+				log.Printf("error sending error response: %v", err)
+				return
+			}
+
 			log.Printf("handler returned error: %v", err)
 			return
 		}
