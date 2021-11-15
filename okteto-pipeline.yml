@@ -1,0 +1,2 @@
+deploy:
+  okteto stack deploy -f deploy/docker-compose.loader.yml --wait
