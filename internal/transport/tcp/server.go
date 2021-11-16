@@ -50,6 +50,8 @@ func (s *Server) Start(addr string, config *tls.Config) error {
 					log.Printf("error handling connection: %v", err)
 					return
 				}
+
+				log.Printf("connection closed")
 			}()
 		}
 	}()
@@ -80,6 +82,8 @@ func (s *Server) handleConnection(conn net.Conn) error {
 	for {
 		var req transport.Request
 		if err := decoder.Decode(&req); errors.Is(err, io.EOF) {
+			return nil
+		} else if err != nil && strings.Contains(err.Error(), "tls: first record does not look like a TLS handshake") {
 			return nil
 		} else if err != nil {
 			log.Print(err)
