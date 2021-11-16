@@ -1,5 +1,5 @@
-addrQuic: localhost:8081
 addrTcp: 46.101.186.135:8080
+addrQuic: 46.101.186.135:8081
 addrNats: 46.101.186.135:4222
 connString: sqlite.db
 certFile: ./config/certs/client/cert.pem

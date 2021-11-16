@@ -21,10 +21,8 @@ type Client struct {
 	decoder *gob.Decoder
 }
 
-func NewClient(addr string, tlsConfig *tls.Config) (Client, error) {
-	tlsConfig.NextProtos = append(tlsConfig.NextProtos, "x-quic")
-
-	session, err := quic.DialAddr(addr, tlsConfig, nil)
+func NewClient(addr string, config *tls.Config) (Client, error) {
+	session, err := quic.DialAddr(addr, config, nil)
 	if err != nil {
 		return Client{}, err
 	}
