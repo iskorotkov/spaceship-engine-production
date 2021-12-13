@@ -1,6 +1,7 @@
 addrTcp: :8080
 addrQuic: :8081
 addrNats: nats-server:4222
+addrGrpc: :8082
 connString: "host=postgres port=5432 user=postgres password=postgres dbname=postgres sslmode=disable"
 certFile: /certs/server/cert.pem
 keyFile: /certs/server/key.pem

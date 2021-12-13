@@ -1,14 +1,16 @@
 package main
 
 import (
+	"context"
 	logpkg "log"
 	"os"
 
+	data_loader "github.com/iskorotkov/spaceship-engine-production/api/data-loader"
 	"github.com/iskorotkov/spaceship-engine-production/internal/models"
 	"github.com/iskorotkov/spaceship-engine-production/internal/transport"
-	"github.com/iskorotkov/spaceship-engine-production/internal/transport/nats"
-	"github.com/iskorotkov/spaceship-engine-production/internal/transport/tcp"
 	"github.com/spf13/viper"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
@@ -24,75 +26,93 @@ func main() {
 	tlsConfig := transport.MustCreateTLSConfig(config.CertFile, config.KeyFile, config.RootCA)
 	tlsConfig.InsecureSkipVerify = true
 
-	tcpClient, err := tcp.NewClient(config.AddrTCP, tlsConfig)
+	conn, err := grpc.Dial(config.AddrGRPC, grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)))
 	if err != nil {
-		log.Fatalf("error creating tcp client: %v", err)
-	}
-	defer tcpClient.Close()
-
-	natsClient, err := nats.NewClient(config.AddrNATS, tlsConfig)
-	if err != nil {
-		log.Fatalf("error creating nats client: %v", err)
-	}
-	defer natsClient.Close()
-
-	clients := []transport.Client{tcpClient, natsClient}
-
-	for _, c := range clients {
-		if err := c.Send("ping", "hi"); err != nil {
-			log.Fatalf("error sending ping request: %v", err)
-		}
-
-		resp, err := c.Recv()
-		if err != nil {
-			log.Fatalf("error receiving ping response: %v", err)
-		}
-
-		log.Printf("ping returned %v", resp)
+		log.Fatalf("error creating grpc connection: %v", err)
 	}
 
-	selectClient := func(i int) transport.Client {
-		return clients[i%len(clients)]
-	}
+	client := data_loader.NewDataLoaderClient(conn)
 
-	for i, value := range must(normalizeClients(db)).([]models.Client) {
-		if err := selectClient(i).Send("save/client", value); err != nil {
+	for _, value := range must(normalizeClients(db)).([]models.Client) {
+		log.Printf("sending client %d", value.ID)
+
+		if _, err := client.SaveClient(context.Background(), &data_loader.ClientReq{
+			Id:   uint32(value.ID),
+			Name: value.Name,
+		}); err != nil {
 			log.Fatalf("error saving client: %v", err)
 		}
 	}
 
-	for i, value := range must(normalizeComponents(db)).([]models.Component) {
-		if err := selectClient(i).Send("save/component", value); err != nil {
+	for _, value := range must(normalizeComponents(db)).([]models.Component) {
+		log.Printf("sending component %d", value.ID)
+
+		if _, err := client.SaveComponent(context.Background(), &data_loader.ComponentReq{
+			Id:   uint32(value.ID),
+			Name: value.Name,
+		}); err != nil {
 			log.Fatalf("error saving component: %v", err)
 		}
 	}
 
-	for i, value := range must(normalizeEngines(db)).([]models.Engine) {
-		if err := selectClient(i).Send("save/engine", value); err != nil {
+	for _, value := range must(normalizeEngines(db)).([]models.Engine) {
+		log.Printf("sending engine %d", value.ID)
+
+		if _, err := client.SaveEngine(context.Background(), &data_loader.EngineReq{
+			Id:    uint32(value.ID),
+			Name:  value.Name,
+			Power: value.Power,
+		}); err != nil {
 			log.Fatalf("error saving engine: %v", err)
 		}
 	}
 
-	for i, value := range must(normalizeOrders(db)).([]models.Order) {
-		if err := selectClient(i).Send("save/order", value); err != nil {
+	for _, value := range must(normalizeOrders(db)).([]models.Order) {
+		log.Printf("sending order %d", value.ID)
+
+		if _, err := client.SaveOrder(context.Background(), &data_loader.OrderReq{
+			Id:          uint32(value.ID),
+			Amount:      int32(value.Amount),
+			CreatedAt:   value.CreatedAt.UnixMilli(),
+			CompletedAt: value.CompletedAt.UnixMilli(),
+			ClientId:    uint32(value.ClientID),
+			EngineId:    uint32(value.EngineID),
+		}); err != nil {
 			log.Fatalf("error saving order: %v", err)
 		}
 	}
 
-	for i, value := range must(normalizeProviders(db)).([]models.Provider) {
-		if err := selectClient(i).Send("save/provider", value); err != nil {
+	for _, value := range must(normalizeProviders(db)).([]models.Provider) {
+		log.Printf("sending provider %d", value.ID)
+
+		if _, err := client.SaveProvider(context.Background(), &data_loader.ProviderReq{
+			Id:   uint32(value.ID),
+			Name: value.Name,
+		}); err != nil {
 			log.Fatalf("error saving provider: %v", err)
 		}
 	}
 
-	for i, value := range must(normalizeRequirements(db)).([]models.Requirement) {
-		if err := selectClient(i).Send("save/requirement", value); err != nil {
+	for _, value := range must(normalizeRequirements(db)).([]models.Requirement) {
+		log.Printf("sending requirement %d", value.ID)
+
+		if _, err := client.SaveRequirement(context.Background(), &data_loader.RequirementReq{
+			Id:          uint32(value.ID),
+			EngineId:    uint32(value.EngineID),
+			ComponentId: uint32(value.ComponentID),
+		}); err != nil {
 			log.Fatalf("error saving requirement: %v", err)
 		}
 	}
 
-	for i, value := range must(normalizeSupplies(db)).([]models.Supply) {
-		if err := selectClient(i).Send("save/supply", value); err != nil {
+	for _, value := range must(normalizeSupplies(db)).([]models.Supply) {
+		log.Printf("sending supply %d", value.ID)
+
+		if _, err := client.SaveSupply(context.Background(), &data_loader.SupplyReq{
+			Id:          uint32(value.ID),
+			ComponentId: uint32(value.ComponentID),
+			ProviderId:  uint32(value.ProviderID),
+		}); err != nil {
 			log.Fatalf("error saving supply: %v", err)
 		}
 	}
