@@ -2,7 +2,7 @@ version: "3.9"
 
 services:
   postgres:
-    image: postgres:13
+    image: postgres:14.1-alpine
     restart: always
     networks:
       db:
@@ -20,6 +20,19 @@ services:
       timeout: 10s
       retries: 3
       start_period: 10s
+
+  pgadmin:
+    image: dpage/pgadmin4:6.2
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    networks:
+      db:
+    volumes:
+      - pgadmin:/root/.pgadmin
+    ports:
+      - "9090:80"
 
   data-loader-server:
     image: data-loader-server
@@ -39,7 +52,7 @@ services:
       - "8082:8082"
 
   nats-server:
-    image: nats:2.6
+    image: nats:2.6-alpine
     restart: always
     command:
       - --tls
@@ -61,3 +74,4 @@ networks:
 
 volumes:
   postgres-data:
+  pgadmin:
