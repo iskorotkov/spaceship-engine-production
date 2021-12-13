@@ -38,7 +38,7 @@ func NewServer(db *gorm.DB) *Server {
 func (s Server) SaveClient(_ context.Context, req *data_loader.ClientReq) (*data_loader.ClientResp, error) {
 	log.Printf("saving client %d", req.Id)
 
-	if err := s.db.Save(&models.Client{
+	if err := s.db.Create(&models.Client{
 		ID:   uint(req.Id),
 		Name: req.Name,
 	}).Error; err != nil {
@@ -51,7 +51,7 @@ func (s Server) SaveClient(_ context.Context, req *data_loader.ClientReq) (*data
 func (s Server) SaveComponent(_ context.Context, req *data_loader.ComponentReq) (*data_loader.ComponentResp, error) {
 	log.Printf("saving component %d", req.Id)
 
-	if err := s.db.Save(&models.Component{
+	if err := s.db.Create(&models.Component{
 		ID:   uint(req.Id),
 		Name: req.Name,
 	}).Error; err != nil {
@@ -64,7 +64,7 @@ func (s Server) SaveComponent(_ context.Context, req *data_loader.ComponentReq) 
 func (s Server) SaveEngine(_ context.Context, req *data_loader.EngineReq) (*data_loader.EngineResp, error) {
 	log.Printf("saving engine %d", req.Id)
 
-	if err := s.db.Save(&models.Engine{
+	if err := s.db.Create(&models.Engine{
 		ID:    uint(req.Id),
 		Name:  req.Name,
 		Power: req.Power,
@@ -80,7 +80,7 @@ func (s Server) SaveOrder(_ context.Context, req *data_loader.OrderReq) (*data_l
 
 	completedAt := time.UnixMilli(req.CompletedAt)
 
-	if err := s.db.Save(&models.Order{
+	if err := s.db.Create(&models.Order{
 		ID:          uint(req.Id),
 		Amount:      int(req.Amount),
 		CreatedAt:   time.UnixMilli(req.CreatedAt),
@@ -97,7 +97,7 @@ func (s Server) SaveOrder(_ context.Context, req *data_loader.OrderReq) (*data_l
 func (s Server) SaveProvider(_ context.Context, req *data_loader.ProviderReq) (*data_loader.ProviderResp, error) {
 	log.Printf("saving provider %d", req.Id)
 
-	if err := s.db.Save(&models.Provider{
+	if err := s.db.Create(&models.Provider{
 		ID:   uint(req.Id),
 		Name: req.Name,
 	}).Error; err != nil {
@@ -110,7 +110,7 @@ func (s Server) SaveProvider(_ context.Context, req *data_loader.ProviderReq) (*
 func (s Server) SaveRequirement(_ context.Context, req *data_loader.RequirementReq) (*data_loader.RequirementResp, error) {
 	log.Printf("saving requirement %d", req.Id)
 
-	if err := s.db.Save(&models.Requirement{
+	if err := s.db.Create(&models.Requirement{
 		ID:          uint(req.Id),
 		EngineID:    uint(req.EngineId),
 		ComponentID: uint(req.ComponentId),
@@ -124,7 +124,7 @@ func (s Server) SaveRequirement(_ context.Context, req *data_loader.RequirementR
 func (s Server) SaveSupply(_ context.Context, req *data_loader.SupplyReq) (*data_loader.SupplyResp, error) {
 	log.Printf("saving supply %d", req.Id)
 
-	if err := s.db.Save(&models.Supply{
+	if err := s.db.Create(&models.Supply{
 		ID:          uint(req.Id),
 		ComponentID: uint(req.ComponentId),
 		ProviderID:  uint(req.ProviderId),
